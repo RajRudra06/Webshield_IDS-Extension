@@ -1,4 +1,6 @@
 import * as ort from "onnxruntime-web";
+import { apply_typosquatting_heuristic } from "./typoSqauttinFunction";
+import { extract_features_enhanced } from "./featuresExtraction";
 
 // Must match your training labels
 const CLASSES = ["benign", "defacement", "malware", "phishing"];
@@ -8,7 +10,7 @@ let mlSession = null;
 // --- Load ONNX model once ---
 export async function loadMLModel() {
   try {
-    const modelUrl = chrome.runtime.getURL("ml_systems/lightgbm_classifier.onnx");
+    const modelUrl = chrome.runtime.getURL("ml_systems/lightGBMClassifier.onnx");
     mlSession = await ort.InferenceSession.create(modelUrl);
     console.log("🤖 ONNX model loaded");
   } catch (error) {
@@ -31,7 +33,7 @@ export async function processUrlWithHeuristicONNX(url) {
     }
 
     // ---- Step 2: Feature extraction ----
-    const featuresDict = extractFeaturesEnhanced(url); // JS equivalent of extract_features_enhanced()
+    const featuresDict = extract_features_enhanced(url); // JS equivalent of extract_features_enhanced()
     const features = Object.values(featuresDict); // array of 66 numeric features
 
     // ---- Step 3: Ensure correct input ----
@@ -53,7 +55,7 @@ export async function processUrlWithHeuristicONNX(url) {
     const modelPred = CLASSES[maxIndex];
 
     // ---- Step 7: Apply heuristic ----
-    const heuristicResult = applyTyposquattingHeuristic(url, modelPred, probDict);
+    const heuristicResult = apply_typosquatting_heuristic(url, modelPred, probDict);
 
     // ---- Step 8: Return same structure as Python ----
     return {
