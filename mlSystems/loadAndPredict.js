@@ -20,7 +20,7 @@ export async function loadMLModel() {
 }
 
 // --- Full inference + heuristic pipeline ---
-export async function processUrlWithHeuristicONNX(url) {
+export async function predictUrlWithHeuristicONNX(url) {
   try {
     if (!mlSession) {
       console.error("❌ ONNX model not loaded");

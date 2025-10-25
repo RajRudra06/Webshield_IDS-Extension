@@ -15,7 +15,7 @@ export async function loadThreatDatabase() {
   }
 }
 
-function isInThreatDatabase(url) {
+export function isInThreatDatabase(url) {
   const domain = extractDomain(url);
   return threatDatabase.has(domain) || threatDatabase.has(url);
 }
