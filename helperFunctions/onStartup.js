@@ -1,5 +1,5 @@
-import { loadThreatDatabase } from "./loadThreatDatabase.js";
-import { loadMLModel } from "./loadMLModel.js";
+import { loadThreatDatabase } from "../pre_database/loadDatabase";
+import { loadMLModel } from "../mlSystems/loadAndPredict.js";
 import { loadStats } from "./state.js";
 
 export async function startup() {

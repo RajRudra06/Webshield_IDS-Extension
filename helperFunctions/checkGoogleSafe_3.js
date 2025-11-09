@@ -1,10 +1,16 @@
 export async function checkGoogleSafeBrowsing(url) {
-    if (!process.env.YOUR_GOOGLE_API_KEY) {
-      return { blocked: false, score: 0 };
-    }
     
     try {
-      const apiUrl = `https://safebrowsing.googleapis.com/v4/threatMatches:find?key=${process.env.YOUR_GOOGLE_API_KEY}`;
+
+      const { apiKeys } = await chrome.storage.local.get("apiKeys");
+      const apiKey = apiKeys?.googleSafeBrowsing;
+      
+      if (!apiKey) {
+        console.warn("⚠️ Google Safe Browsing API key not configured");
+        return { blocked: false, score: 0 };
+      }
+
+      const apiUrl = `https://safebrowsing.googleapis.com/v4/threatMatches:find?key=${apiKey}`;
       
       const response = await fetch(apiUrl, {
         method: 'POST',

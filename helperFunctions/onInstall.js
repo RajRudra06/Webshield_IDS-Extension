@@ -9,7 +9,12 @@ export async function installation() {
     await chrome.storage.local.set({
       stats: { blocked: 0, scanned: 0, installed: Date.now() },
       settings: { enabled: true, blockMode: "warn" },
-      whitelist: []
+      whitelist: [],
+      apiKeys: {
+        googleSafeBrowsing: "", // Users can add their keys later
+        virusTotal: "",
+        phishTank: ""
+      }
     });
 
     // Load resources

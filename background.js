@@ -8,6 +8,12 @@ installation()
 startup()
 continuousChecker()
 
+// background.js - MINIMAL TEST
+console.log("✅ Background script loaded!");
+
+chrome.runtime.onInstalled.addListener(() => {
+  console.log("✅ Extension installed!");
+});
 
 // try {
 //     console.log("🔵 Starting WebShield IDS...");

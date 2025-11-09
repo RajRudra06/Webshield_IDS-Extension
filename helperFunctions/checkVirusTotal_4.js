@@ -1,9 +1,15 @@
 export async function checkVirusTotal(url) {
-    if (!process.env.YOUR_VT_API_KEY) {
-      return { blocked: false, score: 0 };
-    }
     
     try {
+      // Encode URL to base64 (VirusTotal requirement)
+      const { apiKeys } = await chrome.storage.local.get("apiKeys");
+      const apiKey = apiKeys?.virusTotal;
+      
+      if (!apiKey) {
+        console.warn("⚠️ VirusTotal API key not configured");
+        return { blocked: false, score: 0 };
+      }
+      
       // Encode URL to base64 (VirusTotal requirement)
       const urlId = btoa(url).replace(/=/g, '');
       const apiUrl = `https://www.virustotal.com/api/v3/urls/${urlId}`;

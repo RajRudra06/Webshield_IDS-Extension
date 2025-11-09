@@ -132,24 +132,34 @@ export function apply_typosquatting_heuristic(url, modelPrediction, modelProbabi
     const fullDomain = (domain + "." + suffix).toLowerCase();
 
     if (LEGITIMATE_BRAND_DOMAINS.has(fullDomain))
-      return ["benign",
-        { benign: 0.999, phishing: 0.0005, malware: 0.0005, defacement: 0.0 },
-        "whitelist_match"];
+    return {
+      final_pred: "benign",
+      final_proba: { benign: 0.999, phishing: 0.0005, malware: 0.0005, defacement: 0.0 },
+      reason: "whitelist_match"
+    };
 
     if (modelPrediction === "phishing" && (modelProbabilities?.phishing || 0) > 0.85)
-      return [modelPrediction, modelProbabilities, "model_confident"];
-
+      return {
+        final_pred: modelPrediction,
+        final_proba: modelProbabilities,
+        reason: "model_confident"
+      };
     const [isTypo, matchedBrand, typoConf] = check_typosquatting_heuristic(domain);
     if (isTypo && typoConf > 0.75)
-      return ["phishing",
-        { benign: 0.05, phishing: 0.92, malware: 0.02, defacement: 0.01 },
-        `typosquatting_${matchedBrand}`];
+
+      return {
+        final_pred: "phishing",
+        final_proba: { benign: 0.05, phishing: 0.92, malware: 0.02, defacement: 0.01 },
+        reason: `typosquatting_${matchedBrand}`
+      };
 
     const [isHomograph, homographConf] = check_homograph_attack(domain);
     if (isHomograph && homographConf > 0.75)
-      return ["phishing",
-        { benign: 0.08, phishing: 0.88, malware: 0.03, defacement: 0.01 },
-        "homograph_attack"];
+      return {
+        final_pred: "phishing",
+        final_proba: { benign: 0.08, phishing: 0.88, malware: 0.03, defacement: 0.01 },
+        reason: "homograph_attack"
+      };
 
     if (modelPrediction === "benign") {
       let suspiciousScore = 0;
@@ -186,15 +196,26 @@ export function apply_typosquatting_heuristic(url, modelPrediction, modelProbabi
       }
 
       if (suspiciousScore >= 0.6)
-        return ["phishing",
-          { benign: 0.15, phishing: 0.8, malware: 0.03, defacement: 0.02 },
-          `heuristic_${reasons.join("_")}`];
+        return {
+          final_pred: "phishing",
+          final_proba: { benign: 0.15, phishing: 0.8, malware: 0.03, defacement: 0.02 },
+          reason: `heuristic_${reasons.join("_")}`
+        };
     }
 
-    return [modelPrediction, modelProbabilities, "model_decision"];
+    return {
+      final_pred: modelPrediction,
+      final_proba: modelProbabilities,
+      reason: "model_decision"
+    };
   } catch (e) {
     console.error("Parsing error in apply_typosquatting_heuristic:", e);
-    return [modelPrediction, modelProbabilities, "parsing_error"];
+      return {
+        final_pred: modelPrediction,
+        final_proba: modelProbabilities,
+        reason: "parsing_error"
+      };
+   
   }
 }
 
