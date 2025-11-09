@@ -1,4 +1,4 @@
-import { LEGITIMATE_BRAND_DOMAINS, BRAND_KEYWORDS } from "./constants/legimateBrandDomains"
+import { LEGITIMATE_BRAND_DOMAINS, BRAND_KEYWORDS } from "./constants/legimateBrandDomains.js"
 
 export function generate_all_typosquatting_patterns(brand) {
   const patterns = new Set();

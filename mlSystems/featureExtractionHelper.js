@@ -1,4 +1,4 @@
-import { BRAND_KEYWORDS } from "./constants/legimateBrandDomains";
+import { BRAND_KEYWORDS } from "./constants/legimateBrandDomains.js";
 
 export function shannon_entropy(s) {
   if (typeof s !== "string" || s.length === 0) return 0;

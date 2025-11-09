@@ -1,5 +1,5 @@
-import { analyzeURL } from "./analyseURL";
-import { updateStats,stats } from "./state";
+import { analyzeURL } from "./analyseURL.js";
+import { updateStats,stats } from "./state.js";
 
 export async function continuousChecker(){
     chrome.webRequest.onBeforeRequest.addListener(

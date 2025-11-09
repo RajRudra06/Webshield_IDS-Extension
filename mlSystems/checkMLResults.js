@@ -1,4 +1,4 @@
-import { predictUrlWithHeuristicONNX } from "./loadAndPredict";
+import { predictUrlWithHeuristicONNX } from "./loadAndPredict.js";
 
 export async function checkMLResult(url) {
     try {

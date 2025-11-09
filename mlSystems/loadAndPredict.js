@@ -1,6 +1,6 @@
 import * as ort from "onnxruntime-web";
-import { apply_typosquatting_heuristic } from "./typoSqauttinFunction";
-import { extract_features_enhanced } from "./featuresExtraction";
+import { apply_typosquatting_heuristic } from "./typoSqauttinFunction.js";
+import { extract_features_enhanced } from "./featuresExtraction.js";
 
 // Must match your training labels
 const CLASSES = ["benign", "defacement", "malware", "phishing"];

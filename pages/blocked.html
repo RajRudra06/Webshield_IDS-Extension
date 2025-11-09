@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Website Blocked</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      margin: 0;
+    }
+    .warning-box {
+      background: white;
+      padding: 40px;
+      border-radius: 10px;
+      box-shadow: 0 10px 50px rgba(0,0,0,0.3);
+      max-width: 600px;
+    }
+    .icon {
+      font-size: 80px;
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    .details {
+      background: #f8f9fa;
+      padding: 20px;
+      border-left: 4px solid #dc3545;
+      margin: 20px 0;
+    }
+    button {
+      padding: 12px 24px;
+      margin: 10px 5px;
+      border: none;
+      border-radius: 5px;
+      font-size: 16px;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+    .safe { background: #28a745; color: white; }
+    .report { background: #ffc107; }
+    .proceed { background: #dc3545; color: white; }
+  </style>
+</head>
+<body>
+  <div class="warning-box">
+    <div class="icon">🚫</div>
+    <h1 style="color: #dc3545; text-align: center;">WEBSITE BLOCKED</h1>
+    
+    <p style="text-align: center; font-size: 18px;">
+      WebShield IDS has blocked this website because it may be dangerous.
+    </p>
+    
+    <div class="details">
+      <p><strong>URL:</strong> <span id="blocked-url"></span></p>
+      <p><strong>Threat Type:</strong> <span id="threat-type"></span></p>
+      <p><strong>Risk Level:</strong> <span id="risk-level"></span></p>
+      <p><strong>Reason:</strong> <span id="reason"></span></p>
+      
+      <div style="margin-top: 15px;">
+        <p><strong>Why this site is suspicious:</strong></p>
+        <ul id="indicators"></ul>
+      </div>
+    </div>
+    
+    <div style="text-align: center;">
+      <button class="safe" onclick="goBack()">
+        ← Go Back to Safety
+      </button>
+      <button class="report" onclick="reportFalsePositive()">
+        Report False Positive
+      </button>
+      <button class="proceed" onclick="proceedAnyway()">
+        Proceed Anyway (Not Recommended)
+      </button>
+    </div>
+  </div>
+  
+  <script src="blocked.js"></script>
+</body>
+</html>

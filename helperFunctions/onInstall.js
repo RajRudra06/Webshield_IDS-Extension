@@ -1,5 +1,5 @@
-import { loadMLModel } from "../mlSystems/loadAndPredict";
-import { loadThreatDatabase } from "../pre_database/loadDatabase";
+import { loadMLModel } from "../mlSystems/loadAndPredict.js";
+import { loadThreatDatabase } from "../pre_database/loadDatabase.js";
 
 export async function installation() {
   chrome.runtime.onInstalled.addListener(async (details) => {

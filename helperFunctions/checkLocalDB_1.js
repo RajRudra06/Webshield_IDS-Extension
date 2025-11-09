@@ -1,4 +1,4 @@
-import { isInThreatDatabase } from "../pre_database/loadDatabase";
+import { isInThreatDatabase } from "../pre_database/loadDatabase.js";
 
 export function checkLocalDatabase(url) {
     if (isInThreatDatabase(url)) {

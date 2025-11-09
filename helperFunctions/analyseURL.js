@@ -1,9 +1,9 @@
-import { checkLocalDatabase } from "./checkLocalDB_1";
-import { checkHeuristics } from "./checkHeuristics_2";
-import { checkMLResult } from "../mlSystems/checkMLResults";
-import { checkGoogleSafeBrowsing } from "./checkGoogleSafe_3";
-import { checkVirusTotal } from "./checkVirusTotal_4";
-import { checkPhishTank } from "./checkPhishTank_5";
+import { checkLocalDatabase } from "./checkLocalDB_1.js";
+import { checkHeuristics } from "./checkHeuristics_2.js";
+import { checkMLResult } from "../mlSystems/checkMLResults.js";
+import { checkGoogleSafeBrowsing } from "./checkGoogleSafe_3.js";
+import { checkVirusTotal } from "./checkVirusTotal_4.js";
+import { checkPhishTank } from "./checkPhishTank_5.js";
 
 export async function analyzeURL(url) {
     console.log(`🔍 Analyzing: ${url}`);

@@ -1,0 +1,48 @@
+{
+    "manifest_version": 3,
+    "name": "WebShield IDS",
+    "version": "1.0.0",
+    "description": "Real-time browser intrusion detection and phishing protection powered by machine learning.",
+  
+    "permissions": [
+      "storage",
+      "downloads",
+      "notifications",
+      "tabs",
+      "webRequest"
+    ],
+  
+    "host_permissions": ["<all_urls>"],
+  
+    "background": {
+      "service_worker": "background.js",
+      "type": "module"
+    },
+  
+    "content_scripts": [
+      {
+        "matches": ["<all_urls>"],
+        "js": ["content-scraper.js"],
+        "run_at": "document_start"
+      }
+    ],
+  
+    "action": {
+      "default_popup": "popup/popup.html",
+      "default_icon": {
+        "16": "icons/icon.png"
+      }
+    },
+  
+    "icons": {
+      "16": "icons/icon.png"
+    },
+  
+    "web_accessible_resources": [
+      {
+        "resources": ["pages/blocked.html"],
+        "matches": ["<all_urls>"]
+      }
+    ]
+  }
+  

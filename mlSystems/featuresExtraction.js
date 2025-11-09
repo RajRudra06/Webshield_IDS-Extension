@@ -1,8 +1,8 @@
 import { shannon_entropy, longest_repeated_char, vowel_consonant_ratio,
     get_tld_category, count_ngrams, safe_max_len_list,
     safe_max_match_length, has_character_substitution,
-    check_advanced_typosquatting } from "./featureExtractionHelper";
-import { LEGITIMATE_BRAND_DOMAINS, BRAND_KEYWORDS } from "./constants/legimateBrandDomains";
+    check_advanced_typosquatting } from "./featureExtractionHelper.js";
+import { LEGITIMATE_BRAND_DOMAINS, BRAND_KEYWORDS } from "./constants/legimateBrandDomains.js";
 
 export function extract_features_enhanced(url) {
 const features = {};
