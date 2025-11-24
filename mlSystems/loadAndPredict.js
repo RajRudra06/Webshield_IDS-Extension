@@ -1,4 +1,4 @@
-import * as ort from "onnxruntime-web";
+import * as ort from "./ort.min.js";
 import { apply_typosquatting_heuristic } from "./typoSqauttinFunction.js";
 import { extract_features_enhanced } from "./featuresExtraction.js";
 
