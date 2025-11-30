@@ -10,8 +10,15 @@ let mlSession = null;
 // --- Load ONNX model once ---
 export async function loadMLModel() {
   try {
-    const modelUrl = chrome.runtime.getURL("ml_systems/lightGBMClassifier.onnx");
-    mlSession = await ort.InferenceSession.create(modelUrl);
+    ort.env.wasm.wasmPaths = chrome.runtime.getURL("mlSystems/");
+ort.env.wasm.numThreads = 1;
+ort.env.wasm.simd = false; // Disable SIMD for service worker compatibility
+
+    const modelUrl = chrome.runtime.getURL("mlSystems/lightGBMClassifier.onnx");
+    
+    mlSession = await ort.InferenceSession.create(modelUrl, {
+      executionProviders: ['wasm']
+    });
     console.log("🤖 ONNX model loaded");
   } catch (error) {
     console.error("❌ Failed to load ONNX model:", error);
