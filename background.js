@@ -4,11 +4,11 @@ import { installation } from "./helperFunctions/onInstall.js";
 
 let settings = { enabled: true };      
 
-installation()
+// installation()
 // startup()
 continuousChecker()
 
-console.log("✅ Background script loaded!");
+console.log("✅ Background script loaded");
 
 // chrome.runtime.onInstalled.addListener(() => {
 //   console.log("✅ Extension installed!");
