@@ -22,6 +22,7 @@ export async function analyzeURL(url) {
     if (heuristicResult.blocked) return finalize(heuristicResult);
   
     const mlResult = await checkMLResult(url); 
+    
     results.checks = {
         database: dbResult,
         heuristics: heuristicResult,

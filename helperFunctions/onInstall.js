@@ -1,5 +1,4 @@
-import { loadMLModel } from "../mlSystems/loadAndPredict.js";
-import { loadThreatDatabase } from "../pre_database/loadDatabase.js";
+import { initResources } from "./initResources";
 
 export async function installation() {
   chrome.runtime.onInstalled.addListener(async (details) => {
@@ -18,8 +17,7 @@ export async function installation() {
     });
 
     // Load resources
-    await loadThreatDatabase();
-    await loadMLModel();
+    await initResources()
 
     console.log("✅ WebShield IDS ready!");
 

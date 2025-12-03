@@ -1,0 +1,6 @@
+Starts with finalApplier.js and it checks if url check required if url is chrome or outside 
+
+If outside it calls analyzeAndRedirectIfNeeded() which calls analyseURL which will do 6 top level checks one of them involves AI part, chekcs involved:
+    checkLocalDatabase
+    top level Heuristics (quick url checks, has major checks inside it)
+    checkMLResult-which in turn calls predictUrlWithHeuristicONNX, and it involves checks done by backend too (involces https addition then features are extracted and here alos heuristic check done, which is different from done in step 2)

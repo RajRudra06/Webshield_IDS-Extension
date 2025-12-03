@@ -11,8 +11,8 @@ let mlSession = null;
 export async function loadMLModel() {
   try {
     ort.env.wasm.wasmPaths = chrome.runtime.getURL("mlSystems/");
-ort.env.wasm.numThreads = 1;
-ort.env.wasm.simd = false; // Disable SIMD for service worker compatibility
+    ort.env.wasm.numThreads = 1;
+    ort.env.wasm.simd = false; // Disable SIMD for service worker compatibility
 
     const modelUrl = chrome.runtime.getURL("mlSystems/lightGBMClassifier.onnx");
     
