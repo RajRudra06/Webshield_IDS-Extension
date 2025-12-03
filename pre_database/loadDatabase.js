@@ -15,6 +15,21 @@ export async function loadThreatDatabase() {
   }
 }
 
+function extractDomain(url) {
+  const u = new URL(url.includes("://") ? url : "https://" + url);
+
+  const netloc = u.hostname;
+  const path = u.pathname;
+  const query = u.search.replace(/^\?/, "");
+
+  const parts = netloc.split(".");
+  const suffix = parts.pop() || "";
+  const domain = parts.pop() || "";
+  const subdomain = parts.join(".");
+
+  return domain;  // this is what your code treats as "domain"
+}
+
 export function isInThreatDatabase(url) {
   const domain = extractDomain(url);
   return threatDatabase.has(domain) || threatDatabase.has(url);
