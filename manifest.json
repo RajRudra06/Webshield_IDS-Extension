@@ -4,6 +4,10 @@
   "version": "1.0.0",
   "description": "Real-time browser intrusion detection and phishing protection powered by machine learning.",
 
+  "content_security_policy": {
+    "extension_pages": "script-src 'self' 'wasm-unsafe-eval'; object-src 'self';"
+  },
+
   "permissions": [
     "storage",
     "downloads",
@@ -16,7 +20,7 @@
 
   "background": {
     "service_worker": "background.js",
-    "type": "module"
+    "type":"module"
   },
 
   "content_scripts": [

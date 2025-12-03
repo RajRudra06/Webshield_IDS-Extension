@@ -1,4 +1,4 @@
-import { initResources } from "./initResources";
+import { initResources } from "./initResources.js";
 
 export async function installation() {
   chrome.runtime.onInstalled.addListener(async (details) => {
