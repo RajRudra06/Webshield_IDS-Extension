@@ -1,6 +1,7 @@
-export async function checkGoogleSafeBrowsing(url) {
+  export async function checkGoogleSafeBrowsing(url) {
     
     try {
+      console.log('🔍 Google Safe Browsing: Checking URL:', url);
 
       const { apiKeys } = await chrome.storage.local.get("apiKeys");
       const apiKey = apiKeys?.googleSafeBrowsing;
@@ -9,6 +10,8 @@ export async function checkGoogleSafeBrowsing(url) {
         console.warn("⚠️ Google Safe Browsing API key not configured");
         return { blocked: false, score: 0 };
       }
+
+      console.log('✅ API Key found, making request...');
 
       const apiUrl = `https://safebrowsing.googleapis.com/v4/threatMatches:find?key=${apiKey}`;
       
@@ -29,9 +32,13 @@ export async function checkGoogleSafeBrowsing(url) {
         })
       });
       
+      console.log('📡 Response status:', response.status);
+      
       const data = await response.json();
+      console.log('📦 Google Safe Browsing API response:', data);
       
       if (data.matches && data.matches.length > 0) {
+        console.log('🚨 THREAT DETECTED:', data.matches);
         return {
           blocked: true,
           score: 0.95,
@@ -40,10 +47,11 @@ export async function checkGoogleSafeBrowsing(url) {
         };
       }
       
+      console.log('✅ Google Safe Browsing: URL is safe (no matches)');
       return { blocked: false, score: 0 };
       
     } catch (error) {
-      console.error('Google Safe Browsing check failed:', error);
+      console.error('❌ Google Safe Browsing check failed:', error);
       return { blocked: false, score: 0 };
     }
   }
