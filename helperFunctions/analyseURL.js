@@ -114,7 +114,6 @@ export async function analyzeURL(url) {
       finalDecision: { blocked: false, score: 0, reasons: [], verdict: "SAFE" },
     };
   
-    // ========== PHASE 1: Local Quick Checks ==========
     console.log('📋 Phase 1: Checking local database...');
     const dbResult = checkLocalDatabase(url);
     if (dbResult.blocked) {
@@ -129,22 +128,18 @@ export async function analyzeURL(url) {
       return finalize(heuristicResult);
     }
   
-    // ========== PHASE 2: External Trusted Sources (APIs) ==========
     console.log('🌐 Phase 2: Checking trusted external sources...');
     
     const checks = await Promise.allSettled([
       checkGoogleSafeBrowsing(url),
       checkOpenPhish(url),
+      checkVirusTotal(url)
     ]);
     
     const safebrowsing = get(checks[0]);
     const openphish = get(checks[1]);
+    const virustotal=get(checks[2])
     
-    // Skip VirusTotal
-    console.log('⚠️ VirusTotal key unavailable, skipping it');
-    const virustotal = { blocked: false, score: 0 };
-    
-    // ✅ EARLY EXIT: If Google Safe Browsing found threat
     if (safebrowsing.blocked) {
       console.log('🚨 BLOCKED by Google Safe Browsing - Early exit');
       results.checks = {
@@ -164,7 +159,6 @@ export async function analyzeURL(url) {
       return results;
     }
     
-    // ✅ EARLY EXIT: If OpenPhish found threat
     if (openphish.blocked) {
       console.log('🚨 BLOCKED by OpenPhish - Early exit');
       results.checks = {
@@ -184,7 +178,25 @@ export async function analyzeURL(url) {
       return results;
     }
     
-    // ========== PHASE 3: ML Analysis (Only if trusted sources say "safe") ==========
+    if(virustotal.blocked){
+      console.log('🚨 BLOCKED by VirusTotal - Early exit');
+      results.checks = {
+        database: dbResult,
+        heuristics: heuristicResult,
+        safebrowsing: safebrowsing,
+        openphish: openphish,
+        virustotal: virustotal
+      };
+      results.finalDecision = {
+        blocked: true,
+        score: virustotal.score,
+        reasons: [virustotal.reason],
+        verdict: "HIGH THREAT"
+      };
+      console.log('🧠 Analysis result:', results);
+      return results;
+
+    }
     console.log('🧠 Phase 3: Trusted sources found nothing, checking ML model...');
     const mlResult = await checkMLResult(url);
     
@@ -197,7 +209,6 @@ export async function analyzeURL(url) {
         ml_heuristic: mlResult
     };
     
-    // ✅ If ML says it's malicious (blocked or high score)
     if (mlResult.blocked) {
       console.log('🚨 BLOCKED by ML model - Suspicious patterns detected');
       results.finalDecision = {
@@ -210,7 +221,6 @@ export async function analyzeURL(url) {
       return results;
     }
     
-    // ========== PHASE 4: All Checks Passed - URL is Safe ==========
     console.log('✅ All checks passed - URL appears safe');
     results.finalDecision = {
       blocked: false,

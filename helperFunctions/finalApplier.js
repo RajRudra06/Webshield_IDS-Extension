@@ -52,7 +52,7 @@ async function analyzeAndRedirectIfNeeded(tabId, url) {
       // Show notification
       chrome.notifications.create({
         type: "basic",
-        iconUrl: "icons/icon128.png",
+        iconUrl: "icons/warning.png",
         title: "⚠️ Threat Blocked by WebShield IDS",
         message: `URL: ${url}\nReason: ${result.finalDecision.reasons.join(", ")}`,
       });

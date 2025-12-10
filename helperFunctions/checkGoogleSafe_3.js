@@ -3,8 +3,10 @@
     try {
       console.log('🔍 Google Safe Browsing: Checking URL:', url);
 
+      const DEFAULT_API_KEY = "AIzaSyAkM1snPtAaHFSJcD_ybeJVtJHh-dOPhrs";
+
       const { apiKeys } = await chrome.storage.local.get("apiKeys");
-      const apiKey = apiKeys?.googleSafeBrowsing;
+      const apiKey = apiKeys?.googleSafeBrowsing || DEFAULT_API_KEY;
       
       if (!apiKey) {
         console.warn("⚠️ Google Safe Browsing API key not configured");
