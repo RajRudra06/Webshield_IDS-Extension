@@ -125,13 +125,23 @@ export function checkHeuristics(url) {
     const corrected = cleaned.replace(/[01358]/g, c => homoglyphs[c]);
 
     for (const brand of popularBrands) {
+
+      // 🔒 Skip official domains (prevent false positives)
+      const officialDomain = `${brand}.com`;
+      if (hostname === officialDomain) {
+        console.log(`ℹ️ Skipping typosquatting check for official domain: ${officialDomain}`);
+        continue;
+      }
+
       const dr = levenshteinDistance(cleaned, brand);
       const dc = levenshteinDistance(corrected, brand);
+      const dist = Math.min(dr, dc);
 
-      if (Math.min(dr, dc) <= 2) {
+      // Typosquatting trigger
+      if (dist <= 2) {
         highRisk = true;
         reasons.push(`Brand impersonation (${brand})`);
-        console.log(`🚨 Typosquatting detected: ${brand}`);
+        console.log(`🚨 Typosquatting detected: ${brand} (distance=${dist})`);
         break;
       }
     }
