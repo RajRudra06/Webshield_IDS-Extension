@@ -3,7 +3,7 @@ export function checkHeuristics(url) {
 
   let score = 0;
   const reasons = [];
-  let highRisk = false; // high-severity flags (e.g. typosquatting)
+  let highRisk = false;
 
   try {
     const parsed = new URL(url);
@@ -14,24 +14,95 @@ export function checkHeuristics(url) {
       search: parsed.search
     });
 
-    // 🔴 Check 2.1: Raw IP address
-    const hasIP = /\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}/.test(parsed.hostname);
+    const hostname = parsed.hostname.toLowerCase();
+
+    // ===========================
+    // HIGH-RISK KEYWORD SET
+    // ===========================
+    const suspiciousWords = [
+      // Auth / Login
+      'login','signin','signup','register','account','user','profile',
+      'verify','verification','2fa','otp','auth','authenticate','token',
+      'password','pass','credential','creds','reset','recover','unlock',
+
+      // Banking / Finance
+      'bank','wallet','payment','pay','upi','billing','invoice','transaction',
+      'fund','transfer','loan','money','walletconnect','metamask','crypto',
+      'exchange','airdrop','deposit','withdraw','payout','finance','debit','credit',
+
+      // Security / Threat
+      'secure','security','safety','update','confirm','validate','protection',
+      'malware','firewall','anti','threat','scan','breach','privacy',
+      'alert','notice','warning','urgent','action','required','immediate',
+      'blocked','suspended','expired','deactivated','limited','restriction',
+      'reactivate','restore','renew','relogin','unlock',
+
+      // Customer / Support
+      'support','helpdesk','service','customer','assist','contact','portal',
+      'livechat','helpline','complaint','feedback','inquiry',
+
+      // Rewards / Scam Bait
+      'free','bonus','reward','gift','offer','promo','discount','deal',
+      'sale','win','winner','claim','prize','jackpot','coupon','voucher',
+
+      // Download / Execution
+      'download','install','run','execute','access','open','continue',
+      'redirect','confirmemail','verifyemail','submit','checkout',
+
+      // Docs / Files
+      'document','statement','receipt','form','report','notice',
+      'pdf','attachment','viewfile','downloadfile',
+
+      // Reactivation
+      'reverify','accountverify','accountupdate','verificationcenter',
+      'unlockaccount','unlockid',
+
+      // Government
+      'pan','aadhar','socialsecurity','irs','tax','revenue','gov','customs','passport'
+    ];
+
+    const containsKeyword = suspiciousWords.some(w => hostname.includes(w));
+
+    // ===========================
+    // 2.1 RAW IP ADDRESS
+    // ===========================
+    const hasIP =
+      /\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}/.test(hostname);
     console.log('🔍 Check 2.1 - Raw IP address:', hasIP);
     if (hasIP) {
       score += 0.4;
-      reasons.push('Uses raw IP address instead of domain');
+      reasons.push("Uses raw IP address");
+
+      // HIGH-RISK COMBO → BLOCK
+      if (containsKeyword) {
+        highRisk = true;
+        reasons.push("IP + suspicious keyword");
+      }
     }
 
-    // 🔴 Check 2.2: Suspicious TLD
-    const hasSuspiciousTLD = /\.(tk|ml|ga|cf|gq|pw|top|xyz|club|work|info|biz|buzz|loan|click|men|wang|party|date|trade|science|cam|icu|cyou|rest|fit|surf|gdn|bid|review|racing|stream|download|zip|mov|lol|country|asia|cricket|host|press|pro|cc|co|cn)$/i
-      .test(parsed.hostname);
+    // ===========================
+    // 2.2 SUSPICIOUS TLD
+    // ===========================
+    const hasSuspiciousTLD =
+      /\.(tk|ml|ga|cf|gq|pw|top|xyz|club|work|info|biz|buzz|loan|click|men|wang|party|date|trade|science|cam|icu|cyou|rest|fit|surf|gdn|bid|review|racing|stream|download|zip|mov|lol|country|asia|cricket|host|press|pro|cc|co|cn)$/i
+        .test(hostname);
+
     console.log('🔍 Check 2.2 - Suspicious TLD:', hasSuspiciousTLD);
+
     if (hasSuspiciousTLD) {
       score += 0.3;
-      reasons.push("Uses suspicious domain extension");
+      reasons.push("Suspicious TLD");
+
+      // COMBO: bank + suspicious TLD → HIGH RISK
+      if (hostname.includes("bank") || hostname.includes("pay")) {
+        highRisk = true;
+        reasons.push("Banking + suspicious TLD");
+      }
     }
 
-    // 🔴 Check 2.3: Typosquatting (high-severity)
+    // ===========================
+    // 2.3 TYPOSQUATTING
+    // ===========================
     console.log('🔍 Check 2.3 - Checking for typosquatting...');
 
     const popularBrands = [
@@ -43,119 +114,122 @@ export function checkHeuristics(url) {
       'swiggy','zomato','ola','uber','makemytrip','goibibo','irctc',
       'ebay','etsy','yahoo','github','stackoverflow','medium','wordpress',
       'shopify','adobe','salesforce','spotify','zoom','dropbox','wikipedia',
-      'chase','wellsfargo','citibank','bankofamerica',
-      'dhl','fedex','ups','usps'
+      'chase','wellsfargo','citibank','bankofamerica','dhl','fedex','ups','usps'
     ];
 
-    const parts = parsed.hostname.split('.');
-    const domainCore = parts[parts.length - 2] || parsed.hostname;
+    const parts = hostname.split('.');
+    const domainCore = parts[parts.length - 2] || hostname;
 
-    const cleaned = domainCore.replace(/[^a-z0-9]/gi, '').toLowerCase();
+    const cleaned = domainCore.replace(/[^a-z0-9]/gi, '');
     const homoglyphs = { '0':'o', '1':'l', '3':'e', '5':'s', '8':'b' };
     const corrected = cleaned.replace(/[01358]/g, c => homoglyphs[c]);
-
-    console.log('🧹 Domain core cleaned:', cleaned);
-    console.log('🔄 Domain core corrected:', corrected);
 
     for (const brand of popularBrands) {
       const dr = levenshteinDistance(cleaned, brand);
       const dc = levenshteinDistance(corrected, brand);
-      if (cleaned !== brand && Math.min(dr, dc) <= 2) {
+
+      if (Math.min(dr, dc) <= 2) {
         highRisk = true;
-        reasons.push(`Suspicious similarity to ${brand}.com`);
-        console.log(`🚨 Typosquatting detected: "${brand}" raw=${dr} corrected=${dc}`);
+        reasons.push(`Brand impersonation (${brand})`);
+        console.log(`🚨 Typosquatting detected: ${brand}`);
         break;
       }
     }
 
-    if (!highRisk) {
-      console.log('✅ No typosquatting detected');
-    }
-
-    // 🔴 Check 2.4: Excessive subdomains
-    const subdomainCount = parsed.hostname.split('.').length - 2;
-    console.log('🔍 Check 2.4 - Subdomain count:', subdomainCount);
+    // ===========================
+    // 2.4 EXCESSIVE SUBDOMAINS
+    // ===========================
+    const subdomainCount = hostname.split('.').length - 2;
     if (subdomainCount > 3) {
       score += 0.2;
       reasons.push(`Too many subdomains (${subdomainCount})`);
     }
 
-    // 🔴 Check 2.5: @ obfuscation
+    // ===========================
+    // 2.5 @ SYMBOL OBFUSCATION
+    // ===========================
     const hasAtSymbol = url.includes('@');
-    console.log('🔍 Check 2.5 - Contains @ symbol:', hasAtSymbol);
     if (hasAtSymbol) {
       score += 0.4;
-      reasons.push('Contains @ symbol (URL obfuscation)');
+      reasons.push("Uses @ obfuscation");
+
+      // Combo: @ + keyword = HIGH RISK
+      if (containsKeyword) {
+        highRisk = true;
+        reasons.push("@ + suspicious keyword");
+      }
     }
 
-    // 🔴 Check 2.6: Long URL
-    console.log('🔍 Check 2.6 - URL length:', url.length);
+    // ===========================
+    // 2.6 LONG URL
+    // ===========================
     if (url.length > 100) {
       score += 0.15;
-      reasons.push(`Unusually long URL (${url.length} chars)`);
+      reasons.push(`Long URL (${url.length} chars)`);
     }
 
-    // 🔴 Check 2.7: Multiple double slashes
+    // ===========================
+    // 2.7 DOUBLE SLASHES
+    // ===========================
     const doubleSlashCount = (url.match(/\/\//g) || []).length;
-    console.log('🔍 Check 2.7 - Double slash count:', doubleSlashCount);
     if (doubleSlashCount > 1) {
       score += 0.2;
-      reasons.push('Multiple double slashes detected');
+      reasons.push("Multiple double slashes");
     }
 
-    // 🔴 Check 2.8: Protocol
-    console.log('🔍 Check 2.8 - Protocol:', parsed.protocol);
+    // ===========================
+    // 2.8 NO HTTPS
+    // ===========================
     if (parsed.protocol !== "https:") {
       score += 0.1;
-      reasons.push("No HTTPS encryption");
+      reasons.push("Not using HTTPS");
+
+      // Combo: keyword + no HTTPS → high risk
+      if (containsKeyword) {
+        highRisk = true;
+        reasons.push("Keyword + insecure protocol");
+      }
     }
 
-    // 🔴 Check 2.9: Suspicious keywords
-    console.log('🔍 Check 2.9 - Checking for suspicious keywords...');
-    const suspiciousWords = [
-      'login','signin','signup','register','account','verify','secure',
-      'password','bank','wallet','payment','invoice','alert','urgent',
-      'support','blocked','suspended','expired','free','bonus','crypto'
-    ];
-    const hasKeyword = suspiciousWords.some(w => parsed.hostname.includes(w));
-    console.log('🔍 Suspicious keyword found:', hasKeyword);
-    if (hasKeyword) {
+    // ===========================
+    // 2.9 SUSPICIOUS KEYWORDS
+    // ===========================
+    if (containsKeyword) {
       score += 0.15;
-      reasons.push('Contains suspicious keywords');
+      reasons.push("Suspicious keyword in hostname");
     }
-
-    console.log('📊 Final heuristics score:', score);
-    console.log('📋 Reasons collected:', reasons);
 
   } catch (err) {
-    console.error('❌ Heuristic check failed:', err);
+    console.error('❌ Heuristic failure:', err);
   }
 
-  // ✔️ Final decision logic
+  // ===========================
+  // FINAL DECISION
+  // ===========================
   const finalResult = {
-    blocked: highRisk || score > 0.7,
-    score: Math.min(score, 1.0),
+    blocked: highRisk || score >= 0.5,
+    score: Math.min(score, 1),
     reasons,
-    layer: 'heuristics'
+    layer: "heuristics"
   };
 
-  console.log('📦 Heuristics result:', finalResult);
+  console.log("📦 Heuristics result:", finalResult);
   return finalResult;
 }
 
 // Helper
 export function levenshteinDistance(a, b) {
-  const matrix = [];
-  for (let i = 0; i <= b.length; i++) matrix[i] = [i];
-  for (let j = 0; j <= a.length; j++) matrix[0][j] = j;
+  const m = [];
+  for (let i = 0; i <= b.length; i++) m[i] = [i];
+  for (let j = 0; j <= a.length; j++) m[0][j] = j;
+
   for (let i = 1; i <= b.length; i++) {
     for (let j = 1; j <= a.length; j++) {
-      matrix[i][j] = b[i-1] === a[j-1]
-        ? matrix[i-1][j-1]
-        : Math.min(matrix[i-1][j-1] + 1,
-                   matrix[i][j-1] + 1,
-                   matrix[i-1][j] + 1)
+      m[i][j] =
+        b[i - 1] === a[j - 1]
+          ? m[i - 1][j - 1]
+          : Math.min(m[i - 1][j - 1] + 1, m[i][j - 1] + 1, m[i - 1][j] + 1);
     }
   }
-  return matrix[b.length][a.length];
+  return m[b.length][a.length];
 }
