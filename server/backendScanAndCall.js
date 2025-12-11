@@ -19,6 +19,16 @@ export async function runBackendScan(tabId, url) {
     }
 }
 
+// Helper function to extract domain
+function extractDomain(url) {
+  try {
+    const urlObj = new URL(url);
+    return urlObj.hostname;
+  } catch {
+    return url;
+  }
+}
+
 export async function handleBackendDecision(tabId, originalUrl, backendResult) {
 
     // Tab closed
@@ -41,10 +51,11 @@ export async function handleBackendDecision(tabId, originalUrl, backendResult) {
         return;
     }
 
-    // ✅ CHECK WHITELIST - Skip if user chose to proceed anyway
-    const { whitelist = [] } = await chrome.storage.session.get('whitelist');
-    if (whitelist.includes(originalUrl)) {
-      console.log("⚪ URL is whitelisted (session). Skipping backend block:", originalUrl);
+    // ✅ CHECK DOMAIN WHITELIST - Skip if user chose to proceed anyway
+    const domain = extractDomain(originalUrl);
+    const { domainWhitelist = [] } = await chrome.storage.session.get('domainWhitelist');
+    if (domainWhitelist.includes(domain)) {
+      console.log("⚪ Domain is whitelisted (session). Skipping backend block:", domain);
       return;
     }
 

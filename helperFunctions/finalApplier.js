@@ -2,6 +2,16 @@ import { analyzeURL } from "./analyseURL.js";
 import { updateStats, stats } from "./state.js";
 import { runBackendScan } from "../server/backendScanAndCall.js";
 
+// Helper function to extract domain
+function extractDomain(url) {
+  try {
+    const urlObj = new URL(url);
+    return urlObj.hostname;
+  } catch {
+    return url;
+  }
+}
+
 export async function continuousChecker() {
   chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
 
@@ -26,10 +36,11 @@ export async function continuousChecker() {
       const { settings } = await chrome.storage.local.get("settings");
       if (!settings?.enabled) return;
 
-      // ✅ CHECK WHITELIST - Skip if user chose to proceed anyway
-      const { whitelist = [] } = await chrome.storage.session.get('whitelist');
-      if (whitelist.includes(url)) {
-        console.log("⚪ URL is whitelisted (session). Skipping scan:", url);
+      // ✅ CHECK DOMAIN WHITELIST - Skip if user chose to proceed anyway
+      const domain = extractDomain(url);
+      const { domainWhitelist = [] } = await chrome.storage.session.get('domainWhitelist');
+      if (domainWhitelist.includes(domain)) {
+        console.log("⚪ Domain is whitelisted (session). Skipping scan:", domain);
         return;
       }
 
