@@ -1,6 +1,6 @@
 import { analyzeURL } from "./analyseURL.js";
 import { updateStats,stats } from "./state.js";
-import { runBackendScan } from "../backendRequests/backendCallAndScan.js";
+import { runBackendScan } from "../server/backendScanAndCall.js";
 
 export async function continuousChecker() {
   // Listen for tab navigation (non-blocking)
@@ -38,14 +38,6 @@ async function analyzeAndRedirectIfNeeded(tabId, url) {
     // Save last scan
     await chrome.storage.local.set({ lastScan: result });
 
-
-    // If ML was uncertain → backend scan must run in background
-    if (result.finalDecision.verdict === "REVIEW_ASYNC") {
-      console.log("⏳ ML uncertain → launching backend scan in background");
-      runBackendScan(tabId, url);   // ← new function
-      return;                        // ← do not block page
-    }
-
     // If threat detected, redirect immediately
     if (result.finalDecision.blocked) {
       stats.blocked++;
@@ -66,7 +58,17 @@ async function analyzeAndRedirectIfNeeded(tabId, url) {
         message: `URL: ${url}\nReason: ${result.finalDecision.reasons.join(", ")}`,
       });
     }
-  } catch (error) {
+
+    // If ML was uncertain → backend scan must run in background
+    if (result.finalDecision.verdict === "REVIEW_ASYNC") {
+      console.log("⏳ ML uncertain → launching backend scan in background");
+      runBackendScan(tabId, url); 
+    }
+
+  }
+  
+  catch (error) {
     console.error("❌ Analysis failed:", error);
   }
 }
+
