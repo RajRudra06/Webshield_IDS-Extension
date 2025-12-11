@@ -220,7 +220,28 @@ export async function analyzeURL(url) {
       console.log('🧠 Analysis result:', results);
       return results;
     }
-    
+
+    if (mlResult.needsBackend) {
+      return {
+          url,
+          timestamp: Date.now(),
+          checks: {
+              database: dbResult,
+              heuristics: heuristicResult,
+              safebrowsing,
+              openphish,
+              virustotal,
+              ml_heuristic: mlResult
+          },
+          finalDecision: {
+              blocked: false,
+              score: mlResult.score,
+              reasons: ["ML uncertain"],
+              verdict: "REVIEW_ASYNC"   // ← key flag
+          }
+      };
+  }
+  
     console.log('✅ All checks passed - URL appears safe');
     results.finalDecision = {
       blocked: false,

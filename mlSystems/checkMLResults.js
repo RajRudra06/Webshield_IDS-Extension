@@ -59,7 +59,7 @@ export async function checkMLResult(url) {
     }
 
     else if(pred !== "benign" && conf < 0.40){
-      needsBackend = true;
+      needsBackend = false;
     }
 
     return {
