@@ -1,83 +1,448 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>Website Blocked</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>⚠️ Threat Blocked - WebShield IDS</title>
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      min-height: 100vh;
+    * {
       margin: 0;
+      padding: 0;
+      box-sizing: border-box;
     }
-    .warning-box {
-      background: white;
-      padding: 40px;
-      border-radius: 10px;
-      box-shadow: 0 10px 50px rgba(0,0,0,0.3);
-      max-width: 600px;
-    }
-    .icon {
-      font-size: 80px;
-      text-align: center;
-      margin-bottom: 20px;
-    }
-    .details {
-      background: #f8f9fa;
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+      background: linear-gradient(135deg, #0f0f1e 0%, #1a1a2e 100%);
+      color: #fff;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
       padding: 20px;
-      border-left: 4px solid #dc3545;
-      margin: 20px 0;
+      overflow-x: hidden;
     }
-    button {
-      padding: 12px 24px;
-      margin: 10px 5px;
-      border: none;
-      border-radius: 5px;
+
+    /* Animated background particles */
+    .bg-particles {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    .particle {
+      position: absolute;
+      width: 4px;
+      height: 4px;
+      background: rgba(255, 51, 102, 0.3);
+      border-radius: 50%;
+      animation: float 15s infinite;
+    }
+
+    @keyframes float {
+      0%, 100% { transform: translateY(0) translateX(0); opacity: 0; }
+      10% { opacity: 1; }
+      90% { opacity: 1; }
+      100% { transform: translateY(-100vh) translateX(50px); opacity: 0; }
+    }
+
+    .container {
+      max-width: 700px;
+      width: 100%;
+      position: relative;
+      z-index: 1;
+      animation: slideUp 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    }
+
+    @keyframes slideUp {
+      from {
+        opacity: 0;
+        transform: translateY(40px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    /* Warning Card */
+    .warning-card {
+      background: rgba(255, 255, 255, 0.05);
+      backdrop-filter: blur(20px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 24px;
+      padding: 48px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .warning-card::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      right: -50%;
+      width: 200%;
+      height: 200%;
+      background: radial-gradient(circle, rgba(255, 51, 102, 0.1) 0%, transparent 70%);
+      animation: pulse 4s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { transform: scale(1) rotate(0deg); }
+      50% { transform: scale(1.1) rotate(180deg); }
+    }
+
+    .content {
+      position: relative;
+      z-index: 1;
+    }
+
+    /* Icon Section */
+    .icon-section {
+      text-align: center;
+      margin-bottom: 32px;
+    }
+
+    .shield-icon {
+      font-size: 80px;
+      display: inline-block;
+      filter: drop-shadow(0 8px 16px rgba(255, 51, 102, 0.4));
+      animation: bounce 2s infinite;
+    }
+
+    @keyframes bounce {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-10px); }
+    }
+
+    .warning-badge {
+      display: inline-block;
+      background: linear-gradient(135deg, #ff3366 0%, #ff6b35 100%);
+      padding: 8px 20px;
+      border-radius: 20px;
+      font-size: 13px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-top: 16px;
+      box-shadow: 0 4px 12px rgba(255, 51, 102, 0.4);
+    }
+
+    /* Title */
+    h1 {
+      font-size: 32px;
+      font-weight: 700;
+      text-align: center;
+      margin-bottom: 16px;
+      background: linear-gradient(135deg, #fff 0%, #ff3366 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .subtitle {
+      text-align: center;
+      color: #8b92b0;
       font-size: 16px;
-      cursor: pointer;
+      margin-bottom: 32px;
+      line-height: 1.6;
+    }
+
+    /* Info Boxes */
+    .info-box {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 16px;
+      padding: 20px;
+      margin-bottom: 16px;
       transition: all 0.3s;
     }
-    .safe { background: #28a745; color: white; }
-    .report { background: #ffc107; }
-    .proceed { background: #dc3545; color: white; }
+
+    .info-box:hover {
+      background: rgba(255, 255, 255, 0.05);
+      border-color: rgba(255, 51, 102, 0.3);
+      transform: translateX(4px);
+    }
+
+    .info-label {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: #8b92b0;
+      margin-bottom: 8px;
+      font-weight: 600;
+    }
+
+    .info-content {
+      font-size: 14px;
+      color: #fff;
+      word-break: break-all;
+      line-height: 1.6;
+    }
+
+    .info-content.url {
+      color: #ff6b35;
+      font-weight: 600;
+    }
+
+    /* Threat Details */
+    .threat-details {
+      background: rgba(255, 51, 102, 0.1);
+      border: 1px solid rgba(255, 51, 102, 0.3);
+      border-radius: 16px;
+      padding: 20px;
+      margin: 24px 0;
+    }
+
+    .threat-title {
+      font-size: 14px;
+      font-weight: 700;
+      color: #ff6b35;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .threat-list {
+      list-style: none;
+      padding: 0;
+    }
+
+    .threat-list li {
+      padding: 8px 0;
+      color: #fff;
+      font-size: 14px;
+      display: flex;
+      align-items: start;
+      gap: 8px;
+    }
+
+    .threat-list li::before {
+      content: '⚠️';
+      flex-shrink: 0;
+    }
+
+    /* Buttons */
+    .button-group {
+      display: flex;
+      gap: 16px;
+      margin-top: 32px;
+    }
+
+    .btn {
+      flex: 1;
+      padding: 16px 24px;
+      border: none;
+      border-radius: 12px;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      box-shadow: 0 4px 16px rgba(102, 126, 234, 0.4);
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(102, 126, 234, 0.6);
+    }
+
+    .btn-secondary {
+      background: rgba(255, 255, 255, 0.05);
+      color: #8b92b0;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .btn-secondary:hover {
+      background: rgba(255, 255, 255, 0.1);
+      color: #fff;
+      border-color: rgba(255, 255, 255, 0.2);
+    }
+
+    /* Warning Notice */
+    .warning-notice {
+      margin-top: 24px;
+      padding: 16px;
+      background: rgba(255, 193, 7, 0.1);
+      border: 1px solid rgba(255, 193, 7, 0.3);
+      border-radius: 12px;
+      display: none;
+    }
+
+    .warning-notice.show {
+      display: block;
+      animation: fadeIn 0.3s;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(-10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .warning-notice-title {
+      font-size: 14px;
+      font-weight: 700;
+      color: #ffc107;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .warning-notice-text {
+      font-size: 13px;
+      color: #fff;
+      line-height: 1.6;
+    }
+
+    .proceed-anyway {
+      margin-top: 12px;
+      padding: 12px 20px;
+      background: rgba(255, 51, 102, 0.2);
+      border: 1px solid rgba(255, 51, 102, 0.4);
+      color: #ff6b35;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      width: 100%;
+      transition: all 0.3s;
+    }
+
+    .proceed-anyway:hover {
+      background: rgba(255, 51, 102, 0.3);
+      transform: translateY(-2px);
+    }
+
+    /* Footer */
+    .footer {
+      text-align: center;
+      margin-top: 24px;
+      font-size: 12px;
+      color: #8b92b0;
+      opacity: 0.7;
+    }
+
+    @media (max-width: 768px) {
+      .warning-card {
+        padding: 32px 24px;
+      }
+
+      h1 {
+        font-size: 24px;
+      }
+
+      .button-group {
+        flex-direction: column;
+      }
+    }
   </style>
 </head>
 <body>
-  <div class="warning-box">
-    <div class="icon">🚫</div>
-    <h1 style="color: #dc3545; text-align: center;">WEBSITE BLOCKED</h1>
-    
-    <p style="text-align: center; font-size: 18px;">
-      WebShield IDS has blocked this website because it may be dangerous.
-    </p>
-    
-    <div class="details">
-      <p><strong>URL:</strong> <span id="blocked-url"></span></p>
-      <p><strong>Threat Type:</strong> <span id="threat-type"></span></p>
-      <p><strong>Risk Level:</strong> <span id="risk-level"></span></p>
-      <p><strong>Reason:</strong> <span id="reason"></span></p>
-      
-      <div style="margin-top: 15px;">
-        <p><strong>Why this site is suspicious:</strong></p>
-        <ul id="indicators"></ul>
+  <!-- Background particles -->
+  <div class="bg-particles">
+    <div class="particle" style="left: 10%; animation-delay: 0s;"></div>
+    <div class="particle" style="left: 20%; animation-delay: 2s;"></div>
+    <div class="particle" style="left: 30%; animation-delay: 4s;"></div>
+    <div class="particle" style="left: 40%; animation-delay: 1s;"></div>
+    <div class="particle" style="left: 50%; animation-delay: 3s;"></div>
+    <div class="particle" style="left: 60%; animation-delay: 5s;"></div>
+    <div class="particle" style="left: 70%; animation-delay: 2.5s;"></div>
+    <div class="particle" style="left: 80%; animation-delay: 4.5s;"></div>
+    <div class="particle" style="left: 90%; animation-delay: 1.5s;"></div>
+  </div>
+
+  <div class="container">
+    <div class="warning-card">
+      <div class="content">
+        <!-- Icon Section -->
+        <div class="icon-section">
+          <div class="shield-icon">🛡️</div>
+          <div class="warning-badge">⚠️ Threat Detected</div>
+        </div>
+
+        <!-- Title -->
+        <h1>Website Blocked for Your Safety</h1>
+        <p class="subtitle">
+          WebShield IDS has detected malicious activity on this website and blocked it to protect your data.
+        </p>
+
+        <!-- Blocked URL -->
+        <div class="info-box">
+          <div class="info-label">🔗 Blocked URL</div>
+          <div class="info-content url" id="blocked-url">Loading...</div>
+        </div>
+
+        <!-- Threat Details -->
+        <div class="threat-details">
+          <div class="threat-title">
+            <span>🔍</span>
+            <span>Detected Threats</span>
+          </div>
+          <ul class="threat-list" id="threat-list">
+            <li>Analyzing threat data...</li>
+          </ul>
+        </div>
+
+        <!-- Buttons -->
+        <div class="button-group">
+          <button class="btn btn-primary" id="go-back-btn">
+            <span>←</span>
+            <span>Go Back to Safety</span>
+          </button>
+          <button class="btn btn-secondary" id="show-warning-btn">
+            <span>⚠️</span>
+            <span>More Options</span>
+          </button>
+        </div>
+
+        <!-- Warning Notice (Hidden by default) -->
+        <div class="warning-notice" id="warning-notice">
+          <div class="warning-notice-title">
+            <span>⚠️</span>
+            <span>Proceed at Your Own Risk</span>
+          </div>
+          <p class="warning-notice-text">
+            This website has been flagged as malicious. Proceeding may expose you to:
+          </p>
+          <ul style="margin: 12px 0; padding-left: 20px; color: #fff; font-size: 13px;">
+            <li>Phishing attacks and credential theft</li>
+            <li>Malware and virus infections</li>
+            <li>Financial fraud and identity theft</li>
+          </ul>
+          <p class="warning-notice-text" style="margin-bottom: 12px;">
+            <strong>Only proceed if you absolutely trust this website.</strong>
+          </p>
+          <button class="proceed-anyway" id="proceed-anyway-btn">
+            I Understand the Risks - Proceed Anyway →
+          </button>
+        </div>
+
+        <!-- Footer -->
+        <div class="footer">
+          Protected by WebShield IDS • Powered by Machine Learning
+        </div>
       </div>
     </div>
-    
-    <div style="text-align: center;">
-      <button class="safe" onclick="goBack()">
-        ← Go Back to Safety
-      </button>
-      <button class="report" onclick="reportFalsePositive()">
-        Report False Positive
-      </button>
-      <button class="proceed" onclick="proceedAnyway()">
-        Proceed Anyway (Not Recommended)
-      </button>
-    </div>
   </div>
-  
+
   <script src="blocked.js"></script>
 </body>
 </html>

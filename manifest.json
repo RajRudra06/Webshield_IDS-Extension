@@ -15,7 +15,8 @@
     "downloads",
     "notifications",
     "tabs",
-    "webRequest"
+    "webRequest",
+    "scripting"
   ],
 
   "host_permissions": ["<all_urls>"],
@@ -31,6 +32,7 @@
       "js": ["content-scraper.js"],
       "run_at": "document_start"
     }
+    
   ],
 
   "action": {

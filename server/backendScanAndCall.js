@@ -1,4 +1,5 @@
-import { stats,updateStats } from "../helperFunctions/state.js";
+
+import { stats, updateStats } from "../helperFunctions/state.js";
 
 export async function runBackendScan(tabId, url) {
     try {
@@ -20,7 +21,7 @@ export async function runBackendScan(tabId, url) {
 
 export async function handleBackendDecision(tabId, originalUrl, backendResult) {
 
-    // CASE C — Tab closed
+    // Tab closed
     const tab = await chrome.tabs.get(tabId).catch(() => null);
     if (!tab) {
         console.log("Tab closed. Ignoring backend result.");
@@ -29,40 +30,93 @@ export async function handleBackendDecision(tabId, originalUrl, backendResult) {
 
     const currentUrl = tab.url;
 
-    // If backend says SAFE → nothing more to do
-    if (!backendResult.blocked) {
-        
-        console.log("Backend says safe:", originalUrl);
+    // Extract backend result fields
+    const threatDetected = backendResult?.final_decision?.threat_detected === true;
+    const prediction = backendResult?.final_decision?.prediction || "unknown";
+    const confidence = backendResult?.final_decision?.confidence || 0;
+
+    // SAFE → no action
+    if (!threatDetected) {
+        console.log("✅ Backend says safe:", originalUrl);
         return;
     }
 
+    // ✅ CHECK WHITELIST - Skip if user chose to proceed anyway
+    const { whitelist = [] } = await chrome.storage.session.get('whitelist');
+    if (whitelist.includes(originalUrl)) {
+      console.log("⚪ URL is whitelisted (session). Skipping backend block:", originalUrl);
+      return;
+    }
+
+    console.log("🚨 Backend detected threat:", originalUrl);
+
     const sameDomain = isSameDomain(currentUrl, originalUrl);
 
+    // Update stats
     stats.blocked++;
     updateStats();
 
-    // CASE B — User left the domain but tab is still open
+    // Prepare threat reasons
+    const reasons = [
+        `Backend ML Detection: ${prediction}`,
+        `Confidence: ${(confidence * 100).toFixed(1)}%`,
+        "Detected after async deep analysis"
+    ];
+
+    // Set badge to RED with "!"
+    chrome.action.setBadgeText({ 
+      tabId: tabId,
+      text: "!" 
+    });
+    
+    chrome.action.setBadgeBackgroundColor({ 
+      tabId: tabId,
+      color: "#FF0000" 
+    });
+    
+    // Set tooltip
+    chrome.action.setTitle({
+      tabId: tabId,
+      title: `🚨 Threat Detected by Backend!\n${originalUrl}\nPrediction: ${prediction}`
+    });
+
+    // Store threat info for popup
+    await chrome.storage.local.set({
+      currentThreat: {
+        url: originalUrl,
+        reasons: reasons,
+        timestamp: Date.now(),
+        tabId: tabId,
+        source: "backend"
+      }
+    });
+
+    // If user moved to another site → notify only
     if (!sameDomain) {
-        console.log("User navigated away. Showing notification only.");
+        console.log("⚠️ User navigated away. Badge + popup notification only.");
 
-        chrome.notifications.create({
-            type: "basic",
-            iconUrl: "icons/warning.png",
-            title: "Previous Page Found Malicious",
-            message: `The page you previously visited was unsafe:\n${originalUrl}\nReason: ${backendResult.reason}`
-        });
+        // Try to auto-open popup
+        try {
+          chrome.action.openPopup();
+        } catch (e) {
+          console.log("Could not auto-open popup (user interaction needed)");
+        }
 
-        return; // Do NOT redirect
+        return;
     }
 
-    // CASE A — User still on the same domain → redirect to block page
-    console.log("User still on malicious domain. Redirecting.");
+    // User still on same malicious domain → BLOCK IT
+    console.log("🚫 User still on malicious domain. Redirecting to blocked page.");
 
-    const blockedPageUrl = chrome.runtime.getURL("pages/blocked.html") +
-        `?url=${encodeURIComponent(originalUrl)}` +
-        `&reason=${encodeURIComponent(backendResult.reason)}`;
+    const blockedUrl = chrome.runtime.getURL("pages/blocked.html");
+    chrome.tabs.update(tabId, { url: blockedUrl });
 
-    chrome.tabs.update(tabId, { url: blockedPageUrl });
+    // Try to auto-open popup
+    try {
+      chrome.action.openPopup();
+    } catch (e) {
+      console.log("Could not auto-open popup (user interaction needed)");
+    }
 }
 
 function getDomain(u) {
@@ -70,7 +124,7 @@ function getDomain(u) {
         const url = new URL(u);
         const parts = url.hostname.split(".");
         if (parts.length <= 2) return url.hostname;
-        return parts.slice(-2).join("."); // example: login.google.com → google.com
+        return parts.slice(-2).join(".");
     } catch {
         return u;
     }

@@ -1,25 +1,38 @@
 import { analyzeURL } from "./analyseURL.js";
-import { updateStats,stats } from "./state.js";
+import { updateStats, stats } from "./state.js";
 import { runBackendScan } from "../server/backendScanAndCall.js";
 
 export async function continuousChecker() {
-  // Listen for tab navigation (non-blocking)
   chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
-    
-    // Only check when URL changes and starts loading
+
     if (changeInfo.status === 'loading' && changeInfo.url) {
       const url = changeInfo.url;
-      
-      // Skip Chrome internal URLs
-      if (url.startsWith("chrome://") || url.startsWith("chrome-extension://")) {
+
+      // Skip Chrome internal URLs and about:blank
+      if (
+        url.startsWith("chrome://") ||
+        url.startsWith("chrome-extension://") ||
+        url.startsWith("about:")
+      ) {
         return;
       }
-      
-      // Check user settings
+
+      // Skip Google search pages
+      if (url.startsWith("https://www.google.com/search")) {
+        console.log("Skipping Google search page:", url);
+        return;
+      }
+
       const { settings } = await chrome.storage.local.get("settings");
       if (!settings?.enabled) return;
-      
-      // Run analysis in background (async - doesn't block page load)
+
+      // ✅ CHECK WHITELIST - Skip if user chose to proceed anyway
+      const { whitelist = [] } = await chrome.storage.session.get('whitelist');
+      if (whitelist.includes(url)) {
+        console.log("⚪ URL is whitelisted (session). Skipping scan:", url);
+        return;
+      }
+
       analyzeAndRedirectIfNeeded(tabId, url);
     }
   });
@@ -38,25 +51,49 @@ async function analyzeAndRedirectIfNeeded(tabId, url) {
     // Save last scan
     await chrome.storage.local.set({ lastScan: result });
 
-    // If threat detected, redirect immediately
+    // If threat detected
     if (result.finalDecision.blocked) {
       stats.blocked++;
       updateStats();
       
-      // Redirect to blocked page
-      const blockedPageUrl = chrome.runtime.getURL("pages/blocked.html") + 
-                             `?url=${encodeURIComponent(url)}` +
-                             `&reason=${encodeURIComponent(result.finalDecision.reasons.join(", "))}`;
+      console.log("🚨 THREAT DETECTED!");
       
-      chrome.tabs.update(tabId, { url: blockedPageUrl });
-      
-      // Show notification
-      chrome.notifications.create({
-        type: "basic",
-        iconUrl: "icons/warning.png",
-        title: "⚠️ Threat Blocked by WebShield IDS",
-        message: `URL: ${url}\nReason: ${result.finalDecision.reasons.join(", ")}`,
+      // Set badge to RED with "!"
+      chrome.action.setBadgeText({ 
+        tabId: tabId,
+        text: "!" 
       });
+      
+      chrome.action.setBadgeBackgroundColor({ 
+        tabId: tabId,
+        color: "#FF0000" 
+      });
+      
+      chrome.action.setTitle({
+        tabId: tabId,
+        title: `🚨 Threat Blocked!\n${url}\nReason: ${result.finalDecision.reasons.join(", ")}`
+      });
+      
+      // Store blocked info
+      await chrome.storage.local.set({
+        currentThreat: {
+          url: url,
+          reasons: result.finalDecision.reasons,
+          timestamp: Date.now(),
+          tabId: tabId
+        }
+      });
+      
+      // BLOCK THE PAGE - redirect to blocked page
+      const blockedUrl = chrome.runtime.getURL("pages/blocked.html");
+      chrome.tabs.update(tabId, { url: blockedUrl });
+      
+      // Try to auto-open the extension popup
+      try {
+        chrome.action.openPopup();
+      } catch (e) {
+        console.log("Could not auto-open popup (user interaction needed)");
+      }
     }
 
     // If ML was uncertain → backend scan must run in background
@@ -65,10 +102,7 @@ async function analyzeAndRedirectIfNeeded(tabId, url) {
       runBackendScan(tabId, url); 
     }
 
-  }
-  
-  catch (error) {
+  } catch (error) {
     console.error("❌ Analysis failed:", error);
   }
 }
-

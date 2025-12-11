@@ -40,7 +40,7 @@ export async function checkMLResult(url) {
     const conf = result.final_probabilities?.[pred] || 0;
 
     let blocked = false;
-    let needsBackend = false;
+    let needsBackend = true;
 
     if (pred !== "benign" && conf >= 0.80) {
       blocked = true;
