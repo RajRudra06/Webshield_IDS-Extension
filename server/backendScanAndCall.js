@@ -2,13 +2,15 @@ import { stats,updateStats } from "../helperFunctions/state.js";
 
 export async function runBackendScan(tabId, url) {
     try {
-        const backendResult = await fetch("https://your-fastapi/ensemble", {
+        const backendResult = await fetch("http://127.0.0.1:8000/inference/", {
             method: "POST",
-            headers: { "Content-Type": "application/json" },
+            headers: {
+                "accept": "application/json",
+                "Content-Type": "application/json"
+            },
             body: JSON.stringify({ url })
         }).then(r => r.json());
 
-        // When backend replies, handle the result
         handleBackendDecision(tabId, url, backendResult);
 
     } catch (err) {
@@ -29,11 +31,15 @@ export async function handleBackendDecision(tabId, originalUrl, backendResult) {
 
     // If backend says SAFE → nothing more to do
     if (!backendResult.blocked) {
+        
         console.log("Backend says safe:", originalUrl);
         return;
     }
 
     const sameDomain = isSameDomain(currentUrl, originalUrl);
+
+    stats.blocked++;
+    updateStats();
 
     // CASE B — User left the domain but tab is still open
     if (!sameDomain) {
