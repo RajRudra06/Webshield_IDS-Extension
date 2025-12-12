@@ -28,11 +28,19 @@ chrome.storage.local.get(['stats', 'settings', 'currentThreat'], (result) => {
   }
 });
 
-// Show whitelisted domains count
-chrome.storage.session.get(['domainWhitelist'], (result) => {
-const count = result.domainWhitelist?.length || 0;
-if (count > 0) {
-  console.log(`⚪ ${count} domain(s) whitelisted this session:`, result.domainWhitelist);
+// Show scanned URLs count
+chrome.storage.session.get(['scannedURLs', 'domainWhitelist'], (result) => {
+const urlCount = result.scannedURLs?.length || 0;
+const whitelistCount = result.domainWhitelist?.length || 0;
+
+console.log(`📝 ${urlCount} URL(s) scanned this session`);
+console.log(`⚪ ${whitelistCount} domain(s) whitelisted this session`);
+
+if (urlCount > 0) {
+  console.log('Scanned URLs:', result.scannedURLs);
+}
+if (whitelistCount > 0) {
+  console.log('Whitelisted domains:', result.domainWhitelist);
 }
 });
 
@@ -64,6 +72,22 @@ setTimeout(async () => {
   // Clear badge
   chrome.action.setBadgeText({ text: '' });
 }, 300);
+});
+
+// ✅ NEW: Reset scan history button
+document.getElementById('reset-scan-btn').addEventListener('click', async () => {
+const { scannedURLs = [] } = await chrome.storage.session.get('scannedURLs');
+const count = scannedURLs.length;
+
+// Clear scanned URLs
+await chrome.storage.session.set({ scannedURLs: [] });
+
+if (count > 0) {
+  alert(`✅ ${count} scanned URL(s) cleared!\n\nAll URLs will be scanned again on next visit.`);
+  console.log('🧹 Cleared scanned URLs:', scannedURLs);
+} else {
+  alert('⚪ No URLs have been scanned yet.');
+}
 });
 
 // Clear whitelist button (if you have this button in your HTML)

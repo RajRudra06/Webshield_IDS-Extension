@@ -44,6 +44,18 @@ export async function continuousChecker() {
         return;
       }
 
+      // ✅ CHECK IF ALREADY SCANNED THIS URL (Option 2: Full URL tracking)
+      const { scannedURLs = [] } = await chrome.storage.session.get('scannedURLs');
+      if (scannedURLs.includes(url)) {
+        console.log("✅ URL already scanned this session. Skipping:", url);
+        return;
+      }
+
+      // Mark URL as scanned
+      scannedURLs.push(url);
+      await chrome.storage.session.set({ scannedURLs });
+      console.log(`📝 Added to scanned list (${scannedURLs.length} total URLs):`, url);
+
       analyzeAndRedirectIfNeeded(tabId, url);
     }
   });
@@ -51,9 +63,11 @@ export async function continuousChecker() {
 
 async function analyzeAndRedirectIfNeeded(tabId, url) {
   try {
-    // Update stats
+    // Update stats (only for NEW scans)
     stats.scanned++;
     updateStats();
+    
+    console.log(`📊 Scanning URL #${stats.scanned}:`, url);
     
     // Run full multi-layer analysis
     const result = await analyzeURL(url);
