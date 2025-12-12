@@ -76,18 +76,30 @@ setTimeout(async () => {
 
 // ✅ NEW: Reset scan history button
 document.getElementById('reset-scan-btn').addEventListener('click', async () => {
-const { scannedURLs = [] } = await chrome.storage.session.get('scannedURLs');
-const count = scannedURLs.length;
+  const { scannedURLs = [] } = await chrome.storage.session.get('scannedURLs');
+  const count = scannedURLs.length;
 
-// Clear scanned URLs
-await chrome.storage.session.set({ scannedURLs: [] });
+  // Clear scanned URLs
+  await chrome.storage.session.set({ scannedURLs: [] });
+  
+  // Reset stats to zero
+  await chrome.storage.local.set({ 
+    stats: { 
+      blocked: 0, 
+      scanned: 0,
+      lastUpdate: Date.now()
+    } 
+  });
 
-if (count > 0) {
-  alert(`✅ ${count} scanned URL(s) cleared!\n\nAll URLs will be scanned again on next visit.`);
-  console.log('🧹 Cleared scanned URLs:', scannedURLs);
-} else {
-  alert('⚪ No URLs have been scanned yet.');
-}
+  if (count > 0) {
+    alert(`✅ ${count} scanned URL(s) cleared!\n\nAll URLs and statistics will be reset.`);
+    console.log('🧹 Cleared scanned URLs:', scannedURLs);
+  } else {
+    alert('⚪ No URLs have been scanned yet. Statistics reset to zero.');
+  }
+  
+  // Refresh the stats display
+  location.reload();
 });
 
 // Clear whitelist button (if you have this button in your HTML)
