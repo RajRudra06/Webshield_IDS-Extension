@@ -3,7 +3,7 @@ import { stats, updateStats } from "../helperFunctions/state.js";
 
 export async function runBackendScan(tabId, url) {
     try {
-        const backendResult = await fetch("http://127.0.0.1:8000/inference/", {
+        const backendResult = await fetch("https://toustb0ulh.execute-api.ap-south-1.amazonaws.com/inference/", {
             method: "POST",
             headers: {
                 "accept": "application/json",
