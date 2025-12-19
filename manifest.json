@@ -11,18 +11,28 @@
   },
 
   "permissions": [
-    "activeTab",
     "storage",
     "downloads",
     "notifications",
-    "scripting",
+    "tabs",
     "webRequest"
-  ],
+    ],
+
+  "host_permissions": ["<all_urls>"],
 
   "background": {
     "service_worker": "background.js",
-    "type": "module"
+    "type":"module"
   },
+
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["content-scraper.js"],
+      "run_at": "document_start"
+    }
+    
+  ],
 
   "action": {
     "default_popup": "popup/popup.html",
